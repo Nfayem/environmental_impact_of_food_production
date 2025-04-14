@@ -1,0 +1,48 @@
+# Virtual Environment Setup
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r eifb_requirements.txt | python -m pip install -r eifb_v_requirements.txt
+
+# Version State
+pip freeze > eifb_v_requirements.txt
+
+# LFs
+git lfs install
+git lfs track "*.csv" ".pkl" "*.joblib" "*.zip"
+
+*.csv filter=lfs diff=lfs merge=lfs
+*.pkl filter=lfs diff=lfs merge=lfs
+*.joblib filter=lfs diff=lfs merge=lfs
+*.zip filter=lfs diff=lfs merge=lfs
+
+# Upstream Push
+git push --set-upstream https://github.com/Nfayem/trans_border_freight_data_analysis.git DevOps
+
+
+# Submodule Setup for Main
+git submodule add https://github.com/Nfayem/Azubian_pred_app.git Capstone_App
+git submodule update --init --recursive
+git commit -am "Added submodule for Capstone_App"
+
+
+# Submodule Setup for Clone
+git clone --recurse-submodules https://github.com/Nfayem/Azubian_cap.git
+----or if the repo is already cloned----
+git clone https://github.com/Nfayem/Azubian_cap.git
+cd Azubian_cap
+git submodule update --init --recursive
+
+
+# Submodule Rename
+cd Azubian_cap
+git mv Capstone_App new name
+git config -f .gitmodules submodule.Capstone_App.path new name
+git config -f .git/config submodule.Capstone_App.path new name
+git add .gitmodules .git/config
+git commit -m "Renamed submodule from Azubian_pred_app to new-name"
+git submodule sync
+
+
+
+

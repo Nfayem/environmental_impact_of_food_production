@@ -1,0 +1,97 @@
+import plotly.express as px
+
+# Define custom color mapping
+color_map = {
+    "Animal-Based Foods": "#A52A2A",  # Grey-Red
+    "Plant-Based Foods": "#4682B4"   # Grey-Blue
+}
+
+# Define threshold for "prominent" points (e.g., top 10% in emissions or water use)
+ghg_threshold = df_aq["GHG_100gP"].quantile(0.85)  # Top 10% GHG emissions
+water_threshold = df_aq["SW_Water_100gP"].quantile(0.85)  # Top 10% Water use
+
+# Create a new column to decide which food products to label
+df_aq["Label"] = df_aq.apply(
+    lambda row: row["Food_Product"] if (row["GHG_100gP"] >= ghg_threshold or row["SW_Water_100gP"] >= water_threshold) else "", 
+    axis=1
+)
+
+# Create scatter plot combining calorie- and protein-based analysis
+fig = px.scatter(
+    df_aq,
+    x="SW_Water_100gP",   # Water Scarcity-weighted water use per 100g protein
+    y="GHG_100gP",        # GHG emissions per 100g protein
+    size="GHG_1000kcal",  # GHG emissions per 1000 kcal (bubble size)
+    color="Food_Category",
+    title="<b>Water Scarcity vs. Nutritional Value (Per 100g of Protein)</b>",
+    color_discrete_map=color_map,  # Apply custom colors
+    hover_data={
+        "Food_Product": True,         # Show Food Product
+        "Food_Subcategory": True,     # Show Food Subcategory
+        "Food_Category": True,        # Show Food Category
+        "SW_Water_100gP": ":,.2f",    # Format Scarcity-weighted Water per 100g protein
+        "GHG_100gP": ":,.2f",         # Format GHG Emissions per 100g protein
+        "GHG_1000kcal": ":,.2f"       # Format GHG Emissions per 1000 kcal
+    },
+    text=df_aq["Label"]  # Label only selected prominent points
+)
+
+# Update layout to ensure consistency with previous plots
+fig.update_layout(
+    title=dict(
+        x=0.5,  # Center title
+        xanchor="center"
+    ),
+    xaxis_title="Scarcity-Weighted Water Use (liters per 100g of Protein)",
+    yaxis_title="GHG Emissions (kg CO₂-eq per 100g of Protein)",
+    height=800,
+    width=1200,
+    legend_title="Food Category"
+)
+
+# Update hover template for better readability
+fig.update_traces(
+    hovertemplate="<b>Food Product:</b> %{customdata[0]}<br>" +  # Food Product
+                  "<b>Food Subcategory:</b> %{customdata[1]}<br>" +  # Food Subcategory
+                  "<b>Food Category:</b> %{customdata[2]}<br>" +  # Food Category
+                  "<b>Scarcity-Weighted Water Use:</b> %{x:,.2f} liters per 100g of Protein<br>" +
+                  "<b>GHG Emissions (100gP):</b> %{y:,.2f} kg CO₂-eq per 100g of Protein<br>" +
+                  "<b>GHG Emissions (1000kcal):</b> %{marker.size:,.2f} kg CO₂-eq per 1000 kcal<extra></extra>",
+    textposition="top center",
+    marker=dict(opacity=0.7)  # Make all bubbles slightly transparent
+)
+
+# Show the updated plot
+fig.show()
+
+
+# Define threshold for high eutrophication potential (e.g., top 10%)
+ep_threshold = df_aq["Eutro_100gP"].quantile(0.90)  # Top 10% in eutrophication
+
+# Mark high-impact food products
+df_aq["Eutrophication_Label"] = df_aq.apply(
+    lambda row: row["Food_Product"] if row["Eutro_100gP"] >= ep_threshold else "", axis=1
+)
+
+# Scatter plot: Eutrophication vs. GHG emissions
+fig_ep = px.scatter(
+    df_aq,
+    x="Eutro_100gP",   # Eutrophication per 100g protein
+    y="GHG_100gP",  # GHG emissions per 100g protein
+    size="GHG_1000kcal",  # Bubble size based on GHG emissions per 1000 kcal
+    color="Food_Category",
+    title="<b>Eutrophication vs. GHG Emissions</b>",
+    color_discrete_map=color_map,
+    text="Eutrophication_Label"  # Display labels for high-impact foods
+)
+
+# Improve layout
+fig_ep.update_traces(textposition='top center')
+fig_ep.update_layout(
+    xaxis_title="Eutrophication Potential (kg PO₄-eq per 100g Protein)",
+    yaxis_title="GHG Emissions (kg CO₂-eq per 100g Protein)",
+    height=800,
+    width=1200
+)
+
+fig_ep.show()

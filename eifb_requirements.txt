@@ -1,0 +1,29 @@
+# Lazy Imports for Faster Prototyping
+pyforest
+
+# Automated Exploratory Data Analysis (EDA)
+ydata-profiling
+sweetviz
+
+# Data Handling and Manipulation
+pandas
+numpy
+openpyxl
+xlsxwriter
+
+# Data Visualization
+matplotlib
+seaborn
+plotly
+nbformat
+
+# Statistical and Scientific Computing
+scipy
+scikit-learn
+
+# Reporting and Documentation
+pypandoc
+python-docx
+
+# Version Control
+gitpython
